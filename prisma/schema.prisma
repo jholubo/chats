@@ -1,0 +1,107 @@
+// Prisma Schema for LuboChat Enterprise
+// Database: PostgreSQL
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+enum Role {
+  ADMIN
+  VENDEDOR
+}
+
+enum ConversationStatus {
+  NEW
+  ASSIGNED
+  IN_PROGRESS
+  WAITING_CUSTOMER
+  CLOSED
+}
+
+model Seller {
+  id                 String         @id @default(uuid())
+  name               String
+  email              String         @unique
+  role               Role           @default(VENDEDOR)
+  assignedPercentage Int            @default(25)
+  quotaOutOfTen      Int            @default(2)
+  assignedChatsCount Int            @default(0)
+  isActive           Boolean        @default(true)
+  avatar             String?
+  createdAt          DateTime       @default(now())
+  updatedAt          DateTime       @updatedAt
+  conversations      Conversation[]
+  notes              ContactNote[]
+}
+
+model Contact {
+  id                 String         @id @default(uuid())
+  name               String
+  phoneNumber        String         @unique
+  email              String?
+  company            String?
+  avatar             String?
+  about              String?        @default("Cliente WhatsApp")
+  tags               String[]       @default([])
+  createdAt          DateTime       @default(now())
+  updatedAt          DateTime       @updatedAt
+  conversations      Conversation[]
+  notes              ContactNote[]
+}
+
+model Conversation {
+  id                 String             @id @default(uuid())
+  contactId          String
+  contact            Contact            @relation(fields: [contactId], references: [id])
+  assignedSellerId   String?
+  assignedSeller     Seller?            @relation(fields: [assignedSellerId], references: [id])
+  assignedAt         DateTime?
+  status             ConversationStatus @default(NEW)
+  lastResponseAt     DateTime?
+  isNewChat          Boolean            @default(true)
+  unreadCount        Int                @default(0)
+  isPinned           Boolean            @default(false)
+  isMuted            Boolean            @default(false)
+  isArchived         Boolean            @default(false)
+  labels             String[]           @default([])
+  lockedBySellerId   String?
+  lockedBySellerName String?
+  lockedAt           DateTime?
+  createdAt          DateTime           @default(now())
+  updatedAt          DateTime           @updatedAt
+  messages           Message[]
+}
+
+model Message {
+  id             String       @id @default(uuid())
+  conversationId String
+  conversation   Conversation @relation(fields: [conversationId], references: [id])
+  senderId       String
+  senderName     String
+  type           String       @default("text")
+  content        String
+  mediaUrl       String?
+  fileName       String?
+  fileSize       String?
+  location       Json?
+  status         String       @default("delivered")
+  fromMe         Boolean      @default(false)
+  replyToId      String?
+  createdAt      DateTime     @default(now())
+}
+
+model ContactNote {
+  id         String   @id @default(uuid())
+  contactId  String
+  contact    Contact  @relation(fields: [contactId], references: [id])
+  authorId   String
+  author     Seller   @relation(fields: [authorId], references: [id])
+  authorName String
+  text       String
+  createdAt  DateTime @default(now())
+}

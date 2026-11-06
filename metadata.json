@@ -1,0 +1,6 @@
+{
+  "name": "LuboChat Enterprise",
+  "description": "Herramienta empresarial privada para WhatsApp Web con gestión de vendedores, asignación inteligente de chats (porcentajes y cuotas) y etiquetado CHAT NUEVO.",
+  "requestFramePermissions": ["camera", "microphone"],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
